@@ -19,7 +19,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	reader, err := cli.ImagePull(ctx, "docker.io/library/alpine", types.ImagePullOptions{})
+	reader, err := cli.ImagePull(
+		ctx,
+		"docker.io/library/alpine",
+		types.ImagePullOptions{},
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,20 +38,34 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	err = cli.ContainerStart(
+		ctx,
+		resp.ID,
+		types.ContainerStartOptions{},
+	)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	statusCh, errCh := cli.ContainerWait(
+		ctx,
+		resp.ID,
+		container.WaitConditionNotRunning,
+	)
 	select {
 	case err := <-errCh:
 		if err != nil {
 			log.Fatal(err)
 		}
-	case <-statusCh:
+	case status := <-statusCh:
+		log.Printf("status.StatusCode: %#+v\n", status.StatusCode)
 	}
 
-	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
+	out, err := cli.ContainerLogs(
+		ctx,
+		resp.ID,
+		types.ContainerLogsOptions{ShowStdout: true},
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
